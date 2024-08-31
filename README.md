@@ -14,3 +14,5 @@ CMPostForm과 CMPicture로 분리<br>
 댓글 달기 DB<br>
 CMRecomment 테이블 삭제<br>
 CMComment 테이블에 parant_comment_id 추가<br>
+
+CMRecomment 사용하는 guestbook 임시삭제
