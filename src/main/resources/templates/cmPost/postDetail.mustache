@@ -10,7 +10,7 @@
 <p id="postRegdate"></p>
 
 <button id="editPost">수정</button>
-<button id="disablePost">비활성화</button> <!-- 비활성화 버튼 추가 -->
+<button id="deletePost">삭제</button> <!-- 삭제 버튼 추가 -->
 
 <form id="editPostForm" style="display:none;">
     <input type="text" id="editPostTitle" required>
@@ -39,7 +39,7 @@
         fetch('/api/posts/' + postId)
             .then(response => {
                 if (response.status === 302) {  // 리다이렉트 응답 처리
-                    alert('이 게시글은 비활성화되었습니다.');
+                    alert('이 게시글은 삭제되었습니다.');
                     window.location.href = '/';  // 메인 페이지로 리다이렉트
                 } else if (!response.ok) {
                     throw new Error('게시글을 불러오는데 실패했습니다.');
@@ -103,16 +103,16 @@
             });
         });
 
-        // 게시글 비활성화 버튼 클릭 이벤트
-        document.getElementById('disablePost').addEventListener('click', function() {
-            if (confirm('이 게시글을 비활성화하시겠습니까?')) {
-                fetch('/api/posts/' + postId + '/disable', {
+        // 게시글 삭제 버튼 클릭 이벤트
+        document.getElementById('deletePost').addEventListener('click', function() {
+            if (confirm('이 게시글을 삭제하시겠습니까?')) {
+                fetch('/api/posts/' + postId + '/delete', {
                     method: 'PUT'
                 })
                 .then(response => response.text())
                 .then(result => {
                     alert(result);
-                    window.location.href = '/'; // 비활성화 후 메인 페이지로 리다이렉트
+                    window.location.href = '/'; // 삭제 후 메인 페이지로 리다이렉트
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -142,6 +142,7 @@
                 <p>${comment.content}</p>
                 <p id="commentLikeCount${comment.id}">추천: ${comment.likeCount}</p>
                 <button class="likeComment" data-comment-id="${comment.id}">추천</button>
+                <button class="deleteComment" data-comment-id="${comment.id}">삭제</button> <!-- 삭제 버튼 추가 -->
                 <p>작성 시간: ${comment.regdate}</p>
                 ${comment.canEdit ? `
                 <!-- 댓글 수정 -->
@@ -190,7 +191,7 @@
             var formData = new FormData(this);
             formData.append('cmPostId', postId);
 
-            fetch('/api/comments/new', {
+            fetch('/api/comments/create', {  // 댓글 작성 경로 수정
                 method: 'POST',
                 body: formData
             })
@@ -204,7 +205,7 @@
             });
         });
 
-        // 댓글과 대댓글 수정 및 좋아요 이벤트 처리
+        // 댓글과 대댓글 수정 및 좋아요, 삭제 이벤트 처리
         document.body.addEventListener('click', function(event) {
             if (event.target.classList.contains('likeComment')) {
                 var commentId = event.target.getAttribute('data-comment-id');
@@ -221,6 +222,23 @@
                 var commentId = event.target.getAttribute('data-comment-id');
                 var form = document.querySelector(`form.editCommentForm[data-comment-id="${commentId}"]`);
                 form.style.display = 'block';
+            }
+
+            if (event.target.classList.contains('deleteComment')) {
+                var commentId = event.target.getAttribute('data-comment-id');
+                if (confirm('이 댓글을 삭제하시겠습니까?')) {
+                    fetch('/api/comments/' + commentId + '/delete', {
+                        method: 'PUT'
+                    })
+                    .then(response => response.text())
+                    .then(result => {
+                        alert(result);
+                        window.location.reload(); // 삭제 후 페이지 새로고침
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
             }
         });
 
@@ -254,7 +272,7 @@
                 formData.append('cmPostId', postId); // 대댓글 작성 시 cmPostId를 추가
                 formData.append('cmCommentId', commentId); // 대댓글 작성 시 cmCommentId를 추가
 
-                fetch('/api/comments/' + commentId + '/new', {  // 대댓글 달기
+                fetch('/api/comments/' + commentId + '/create', {  // 대댓글 작성 경로 수정
                     method: 'POST',
                     body: formData
                 })

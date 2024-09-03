@@ -36,7 +36,7 @@ public class CMPostApiController extends SessionCheckController {
     private UserService userService; // UserService 의존성 주입
 
     @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
-    @PostMapping("/new")
+    @PostMapping("/create")
     public ResponseEntity<String> createPost(@ModelAttribute CMPostForm form, HttpSession session) {
 
         logger.info("Request to create new post: {}", form);  // 새 게시글 생성 요청 로그
@@ -55,8 +55,6 @@ public class CMPostApiController extends SessionCheckController {
 
         return ResponseEntity.ok("Post created successfully");
     }
-
-
 
     @GetMapping // GET 요청을 기본 경로와 매핑
     public ResponseEntity<List<CMGetpostForm>> listPosts() {
@@ -83,14 +81,13 @@ public class CMPostApiController extends SessionCheckController {
         }
 
         if (post.isDisable()) {
-            logger.warn("Attempted access to disabled post: Post ID {}", id);  // 비활성화된 게시글 접근 시 로그 출력
+            logger.warn("Attempted access to deleted post: Post ID {}", id);  // 삭제된 게시글 접근 시 로그 출력
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(URI.create(""));  // /posts 경로로 리다이렉트 설정
+            headers.setLocation(URI.create("/posts"));  // /posts 경로로 리다이렉트 설정
 
             return new ResponseEntity<>(headers, HttpStatus.FOUND);  // 302 Found 상태 코드와 함께 리다이렉트
         }
-
 
         // 게시글의 사진을 Base64 인코딩된 문자열로 변환하여 리스트로 수집
         List<String> pictureBase64List = post.getPictures() != null ? post.getPictures().stream()
@@ -227,10 +224,10 @@ public class CMPostApiController extends SessionCheckController {
     }
 
     @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
-    @PutMapping("/{id}/disable")
-    public ResponseEntity<String> disablePost(@PathVariable Long id, HttpSession session) {
+    @PutMapping("/{id}/delete")
+    public ResponseEntity<String> deletePost(@PathVariable Long id, HttpSession session) {
 
-        logger.info("Request to disable post ID {}", id);  // 게시글 비활성화 요청 로그
+        logger.info("Request to delete post ID {}", id);  // 게시글 삭제 요청 로그
 
         Long userId = (Long) session.getAttribute("userId");
         User loginUser = userService.getLoginUserById(userId);
@@ -241,16 +238,14 @@ public class CMPostApiController extends SessionCheckController {
 
         CMPost existingPost = cmPostService.findPostById(id);
         if (existingPost == null || !existingPost.getUser().getId().equals(loginUser.getId())) {
-            logger.error("Post not found or unauthorized disable attempt.");
+            logger.error("Post not found or unauthorized delete attempt.");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Post not found or unauthorized");
         }
 
-        existingPost.setDisable(true);  // 게시글을 비활성화로 설정
+        existingPost.setDisable(true);  // 게시글을 삭제로 설정
         cmPostService.savePost(existingPost);  // 수정된 게시글 저장
 
-        logger.info("Post disabled successfully: {}", existingPost);  // 게시글 비활성화 완료 로그
-        return ResponseEntity.ok("Post disabled successfully");
+        logger.info("Post deleted successfully: {}", existingPost);  // 게시글 삭제 완료 로그
+        return ResponseEntity.ok("Post deleted successfully");
     }
-
-
 }

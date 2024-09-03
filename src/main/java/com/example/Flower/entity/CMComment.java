@@ -38,6 +38,9 @@ public class CMComment {
     @Column
     private LocalDateTime regdate; // 댓글 작성 시간
 
+    @Column
+    private boolean disable; // 비활성화 여부
+
     @PrePersist
     protected void onCreate() {
         this.regdate = LocalDateTime.now(); // 현재 시간을 regdate에 설정

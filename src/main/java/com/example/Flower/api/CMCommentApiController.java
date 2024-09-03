@@ -36,7 +36,7 @@ public class CMCommentApiController extends SessionCheckController {
     private UserService userService; // UserService 의존성 주입
 
     @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
-    @PostMapping("/new") // POST 요청을 "/new" 경로와 매핑
+    @PostMapping("/create") // POST 요청을 "/create" 경로와 매핑
     public ResponseEntity<String> createComment(@ModelAttribute CMCommentForm form, HttpSession session) {
         logger.info("Request to create new comment: {}", form); // 새 댓글 생성 요청
 
@@ -65,6 +65,14 @@ public class CMCommentApiController extends SessionCheckController {
     public ResponseEntity<List<CMComment>> listComments(@PathVariable Long postId) {
         logger.info("Requesting comment list: Post ID {}", postId); // 댓글 목록 요청
         List<CMComment> comments = cmCommentService.findCommentsByPostId(postId); // 게시글의 모든 댓글 조회
+
+        // 비활성화된 댓글의 내용을 "삭제된 댓글입니다"로 수정
+        comments.forEach(comment -> {
+            if (comment.isDisable()) {
+                comment.setContent("삭제된 댓글입니다");
+            }
+        });
+
         logger.info("Comment list retrieved successfully: Post ID {}", postId); // 댓글 목록 조회 완료
         return ResponseEntity.ok(comments); // 조회된 댓글 목록 반환
     }
@@ -79,7 +87,7 @@ public class CMCommentApiController extends SessionCheckController {
     }
 
     @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
-    @PostMapping("/{id}/new")
+    @PostMapping("/{id}/create")
     public ResponseEntity<String> createReply(@PathVariable Long id, @ModelAttribute CMCommentForm form, HttpSession session) {
         logger.info("Request to create new reply to comment ID {}: {}", id, form);
 
@@ -151,4 +159,25 @@ public class CMCommentApiController extends SessionCheckController {
         return ResponseEntity.ok("Comment updated successfully");
     }
 
+    @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+    @PutMapping("/{id}/delete")
+    public ResponseEntity<String> deleteComment(@PathVariable Long id, HttpSession session) {
+        logger.info("Request to delete comment ID: {}", id);
+
+        Long userId = (Long) session.getAttribute("userId");
+        CMComment existingComment = cmCommentService.findCommentById(id);
+
+        // 댓글이 존재하지 않거나, 현재 사용자가 댓글 작성자가 아닌 경우
+        if (existingComment == null || !existingComment.getUser().getId().equals(userId)) {
+            logger.error("Comment not found or unauthorized: Comment ID: {}, User ID: {}", id, userId);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Comment not found or unauthorized");
+        }
+
+        // 댓글 삭제
+        existingComment.setDisable(true);
+        cmCommentService.saveComment(existingComment);
+
+        logger.info("Comment deleted successfully: Comment ID: {}", id);
+        return ResponseEntity.ok("Comment deleted successfully");
+    }
 }

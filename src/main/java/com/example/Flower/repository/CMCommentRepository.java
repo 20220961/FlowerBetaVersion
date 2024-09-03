@@ -1,6 +1,7 @@
 package com.example.Flower.repository;
 
 import com.example.Flower.entity.CMComment;
+import com.example.Flower.entity.CMPost;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,6 +18,6 @@ public interface CMCommentRepository extends JpaRepository<CMComment, Long> {
     // 특정 사용자의 댓글을 가져오는 메서드
     List<CMComment> findByUser_Id(Long userId);
 
-    // 부모 댓글 ID로 답글을 조회하는 메서드
-    List<CMComment> findByParentComment_Id(Long parentCommentId);
+    // 댓글글을 비활성화 여부에 따라 조회
+    List<CMComment> findByDisableFalse();
 }

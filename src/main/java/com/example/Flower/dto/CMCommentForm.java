@@ -34,6 +34,7 @@ public class CMCommentForm {
                 .content(content)
                 .likeCount(likeCount)
                 .regdate(regdate)
+                .disable(false)
                 .build();
 
         if (parentCommentId != null) {

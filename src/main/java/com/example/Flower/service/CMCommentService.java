@@ -45,4 +45,8 @@ public class CMCommentService {
             cmCommentRepository.save(comment); // 변경된 내용을 저장
         }
     }
+
+    public List<CMComment> deleteComment() {
+        return cmCommentRepository.findByDisableFalse(); // 비활성화된 댓글 검색
+    }
 }
