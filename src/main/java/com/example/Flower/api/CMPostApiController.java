@@ -12,12 +12,13 @@ import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -80,6 +81,16 @@ public class CMPostApiController extends SessionCheckController {
         if (post == null) {
             return ResponseEntity.notFound().build();  // 게시글을 찾지 못한 경우 404 응답 반환
         }
+
+        if (post.isDisable()) {
+            logger.warn("Attempted access to disabled post: Post ID {}", id);  // 비활성화된 게시글 접근 시 로그 출력
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setLocation(URI.create(""));  // /posts 경로로 리다이렉트 설정
+
+            return new ResponseEntity<>(headers, HttpStatus.FOUND);  // 302 Found 상태 코드와 함께 리다이렉트
+        }
+
 
         // 게시글의 사진을 Base64 인코딩된 문자열로 변환하여 리스트로 수집
         List<String> pictureBase64List = post.getPictures() != null ? post.getPictures().stream()
@@ -214,5 +225,32 @@ public class CMPostApiController extends SessionCheckController {
         logger.info("Post updated successfully: {}", existingPost);  // 게시글 수정 완료 로그
         return ResponseEntity.ok("Post updated successfully");
     }
+
+    @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+    @PutMapping("/{id}/disable")
+    public ResponseEntity<String> disablePost(@PathVariable Long id, HttpSession session) {
+
+        logger.info("Request to disable post ID {}", id);  // 게시글 비활성화 요청 로그
+
+        Long userId = (Long) session.getAttribute("userId");
+        User loginUser = userService.getLoginUserById(userId);
+        if (loginUser == null) {
+            logger.error("Logged in user not found.");
+            return ResponseEntity.badRequest().body("User not found");
+        }
+
+        CMPost existingPost = cmPostService.findPostById(id);
+        if (existingPost == null || !existingPost.getUser().getId().equals(loginUser.getId())) {
+            logger.error("Post not found or unauthorized disable attempt.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Post not found or unauthorized");
+        }
+
+        existingPost.setDisable(true);  // 게시글을 비활성화로 설정
+        cmPostService.savePost(existingPost);  // 수정된 게시글 저장
+
+        logger.info("Post disabled successfully: {}", existingPost);  // 게시글 비활성화 완료 로그
+        return ResponseEntity.ok("Post disabled successfully");
+    }
+
 
 }

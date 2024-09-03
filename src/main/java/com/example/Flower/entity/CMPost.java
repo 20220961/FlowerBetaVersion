@@ -45,6 +45,9 @@ public class CMPost {
     @Column
     private int count;  // 조회수
 
+    @Column
+    private boolean disable; // 비활성화 여부
+
     // 사진과의 관계 설정
     @OneToMany(mappedBy = "cmPost", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference // 순환 참조 방지

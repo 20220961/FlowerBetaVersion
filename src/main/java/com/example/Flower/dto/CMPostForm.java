@@ -64,6 +64,7 @@ public class CMPostForm {
                 .likeCount(this.likeCount)
                 .regdate(this.regdate != null ? this.regdate : LocalDateTime.now())
                 .count(this.count)
+                .disable(false)
                 .build();
 
         pictures.forEach(picture -> picture.setCmPost(post));

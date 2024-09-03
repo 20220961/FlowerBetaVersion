@@ -10,6 +10,8 @@
 <p id="postRegdate"></p>
 
 <button id="editPost">수정</button>
+<button id="disablePost">비활성화</button> <!-- 비활성화 버튼 추가 -->
+
 <form id="editPostForm" style="display:none;">
     <input type="text" id="editPostTitle" required>
     <textarea id="editPostContent" required></textarea>
@@ -35,7 +37,15 @@
 
         // 게시글 상세 정보를 불러오기
         fetch('/api/posts/' + postId)
-            .then(response => response.json())
+            .then(response => {
+                if (response.status === 302) {  // 리다이렉트 응답 처리
+                    alert('이 게시글은 비활성화되었습니다.');
+                    window.location.href = '/';  // 메인 페이지로 리다이렉트
+                } else if (!response.ok) {
+                    throw new Error('게시글을 불러오는데 실패했습니다.');
+                }
+                return response.json();
+            })
             .then(post => {
                 // 게시글 정보 설정
                 document.getElementById('postTitle').textContent = post.title;
@@ -57,6 +67,9 @@
                 // 게시글 수정 폼에 기존 값 설정
                 document.getElementById('editPostTitle').value = post.title;
                 document.getElementById('editPostContent').value = post.content;
+            })
+            .catch(error => {
+                console.error('Error:', error);
             });
 
         // 게시글 수정 버튼 클릭 이벤트
@@ -88,6 +101,23 @@
             .catch(error => {
                 console.error('Error:', error);
             });
+        });
+
+        // 게시글 비활성화 버튼 클릭 이벤트
+        document.getElementById('disablePost').addEventListener('click', function() {
+            if (confirm('이 게시글을 비활성화하시겠습니까?')) {
+                fetch('/api/posts/' + postId + '/disable', {
+                    method: 'PUT'
+                })
+                .then(response => response.text())
+                .then(result => {
+                    alert(result);
+                    window.location.href = '/'; // 비활성화 후 메인 페이지로 리다이렉트
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
         });
 
         // 댓글 목록을 불러오기

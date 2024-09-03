@@ -26,7 +26,7 @@ public class CMPostService {
     }
 
     public List<CMPost> findAllPosts() {
-        return (List<CMPost>) cmPostRepository.findAll();  // 모든 게시글 조회
+        return cmPostRepository.findByDisableFalse();  // 비활성화 되지 않은 모든 게시글 조회
     }
 
     public CMPost findPostById(Long id) {
@@ -57,4 +57,5 @@ public class CMPostService {
     public List<CMPost> findPostsByUserId(Long userId) {
         return cmPostRepository.findByUserIdOrderByRegdateDesc(userId);  // 사용자의 게시글 조회
     }
+
 }
