@@ -59,3 +59,4 @@ CMRecomment 사용하는 guestbook 임시삭제
 9/8<br>
 다이어리 기능 마저 완성(mustache에서 게시글 보기, 수정)(삭제[비활성화]는 현재 가능)<br>
 댓글 update기능 오류 수정<br>
+주석 확인하기 편하게 수정<br>
