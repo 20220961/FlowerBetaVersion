@@ -248,4 +248,5 @@ public class CMPostApiController extends SessionCheckController {
         logger.info("Post deleted successfully: {}", existingPost);  // 게시글 삭제 완료 로그
         return ResponseEntity.ok("Post deleted successfully");
     }
+
 }
