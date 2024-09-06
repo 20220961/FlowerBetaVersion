@@ -54,3 +54,8 @@ mustache에서 테스트는 추후 업데이트 할 예정<br>
 <h1>추가 수정 내용</h1>
 9/2<br>
 CMRecomment 사용하는 guestbook 임시삭제
+
+<h1>예정된 할일</h1>
+9/8<br>
+다이어리 기능 마저 완성(mustache에서 게시글 보기, 수정)(삭제[비활성화]는 현재 가능)<br>
+댓글 update기능 오류 수정<br>
